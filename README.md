@@ -1,373 +1,169 @@
-# Finance Dashboard API
+<div align="center">
 
-Production-grade REST API for a Finance Dashboard — built with Node.js, Express, MongoDB, and JWT authentication.
+![header](https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,30:1a237e,60:1565c0,100:0d47a1&height=220&section=header&text=💰%20Finance%20Dashboard%20API&fontSize=42&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=Production-grade%20REST%20API%20·%20Node.js%20·%20MongoDB%20·%20JWT&descSize=16&descAlignY=58&descFontColor=90CAF9)
+
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Express](https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com)
+[![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io)
+[![Swagger](https://img.shields.io/badge/Swagger-Docs-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io)
+[![Railway](https://img.shields.io/badge/Live%20API-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://your-app.up.railway.app/api-docs)
+
+<br/>
+
+</div>
+----
+
+## ✨ What's Inside
+
+> A fully featured, production-ready backend for a finance dashboard — with role-based access control, JWT authentication, financial record management, and aggregated analytics. Built to be clean, secure, and scalable.
+
+```
+POST /auth/login          →  JWT access + refresh tokens
+GET  /analytics/summary   →  Income, expenses, net balance
+GET  /analytics/trends    →  Monthly breakdown (all 12 months)
+GET  /records             →  Paginated, filterable, sortable
+```
 
 ---
 
-## Stack
-
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js 18+ (ESM) |
-| Framework | Express 4 |
-| Database | MongoDB via Mongoose 8 |
-| Auth | JWT (access + refresh tokens) |
-| Validation | Joi |
-| Logging | Winston + Morgan |
-| Rate Limiting | express-rate-limit |
-| Docs | Swagger / OpenAPI 3.0 |
-| Security | Helmet, CORS, mongo-sanitize |
-
----
-
-## Project Structure
+## 🏗️ Architecture
 
 ```
 src/
-├── config/
-│   ├── database.js        # Mongoose connection with pooling
-│   └── swagger.js         # OpenAPI spec config
-├── controllers/
-│   ├── authController.js
-│   ├── userController.js
-│   ├── recordController.js
-│   └── analyticsController.js
-├── services/
-│   ├── authService.js     # Register, login, token refresh
-│   ├── userService.js     # User CRUD, role/status management
-│   ├── recordService.js   # Financial records CRUD
-│   └── analyticsService.js # Aggregation pipelines
-├── models/
-│   ├── User.js            # Role, status, bcrypt hooks
-│   └── Record.js          # Soft delete, auto-exclude middleware
-├── middleware/
-│   ├── authenticate.js    # JWT verification, user hydration
-│   ├── authorize.js       # RBAC (authorize / requireRole)
-│   ├── validate.js        # Joi schema validation
-│   ├── rateLimiter.js     # Auth + API rate limiters
-│   └── errorHandler.js    # Centralized error handling
-├── validators/
-│   ├── authValidators.js
-│   ├── userValidators.js
-│   └── recordValidators.js
-├── routes/
-│   ├── authRoutes.js
-│   ├── userRoutes.js
-│   ├── recordRoutes.js
-│   └── analyticsRoutes.js
-├── utils/
-│   ├── logger.js          # Winston with daily rotation
-│   ├── jwt.js             # Token generation / verification
-│   ├── errors.js          # Typed error classes
-│   ├── response.js        # Consistent response helpers
-│   └── seeder.js          # Dev database seeder
-├── app.js                 # Express app configuration
-└── server.js              # Entry point, graceful shutdown
+├── config/           # DB connection, Swagger spec
+├── controllers/      # Route handlers (auth, users, records, analytics)
+├── services/         # Business logic layer
+├── models/           # Mongoose schemas (User, Record)
+├── middleware/       # JWT auth, RBAC, validation, rate limiting
+├── validators/       # Joi schemas
+├── routes/           # Express routers
+└── utils/            # Logger, JWT helpers, error classes, seeder
 ```
+
+**Key design choices:**
+- **Service layer** separates business logic from controllers — no fat controllers
+- **Typed error classes** (`AuthenticationError`, `ValidationError`, etc.) eliminate if-else chains
+- **Soft delete** via Mongoose pre-query hook — deleted records are invisible by default
+- **Token invalidation** — tokens issued before a password change are automatically rejected
 
 ---
 
-## Setup
+## 🔐 Role-Based Access Control
 
-### Prerequisites
+| Endpoint | Viewer | Analyst | Admin |
+|---|:---:|:---:|:---:|
+| Login / Register | ✅ | ✅ | ✅ |
+| View own records | ✅ | ✅ | ✅ |
+| Create / edit / delete records | ❌ | ✅ | ✅ |
+| Analytics & dashboard | ❌ | ✅ | ✅ |
+| View all users' records | ❌ | ❌ | ✅ |
+| User management | ❌ | ❌ | ✅ |
 
-- Node.js >= 18
-- MongoDB (local or Atlas)
+---
 
-### Installation
+## 🚀 Quick Start
 
 ```bash
 # 1. Clone and install
-git clone <repo-url>
+git clone https://github.com/YOUR_USERNAME/finance-dashboard.git
 cd finance-dashboard
 npm install
 
 # 2. Configure environment
 cp .env.example .env
-```
+# → Fill in MONGODB_URI and generate JWT secrets
 
-Edit `.env`:
-
-```env
-NODE_ENV=development
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/finance_dashboard
-JWT_SECRET=your_super_secret_key_min_32_chars
-JWT_EXPIRES_IN=7d
-JWT_REFRESH_SECRET=your_refresh_secret_key
-JWT_REFRESH_EXPIRES_IN=30d
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX=100
-LOG_LEVEL=info
-ALLOWED_ORIGINS=http://localhost:3000
-```
-
-### Run
-
-```bash
-# Development (with auto-reload)
-npm run dev
-
-# Production
-npm start
-
-# Seed database with sample data
+# 3. Seed the database
 npm run seed
 
-# Wipe and re-seed
-npm run seed:fresh
+# 4. Start dev server
+npm run dev
+# → http://localhost:3001/api-docs
 ```
 
-API Documentation available at: **http://localhost:5000/api-docs**
-
-Health check: **GET http://localhost:5000/health**
-
----
-
-## Role-Based Access Control
-
-| Endpoint Group | Viewer | Analyst | Admin |
-|---|:---:|:---:|:---:|
-| Auth (register, login) | ✅ | ✅ | ✅ |
-| Read own records | ✅ | ✅ | ✅ |
-| Create / update / delete records | ❌ | ✅ | ✅ |
-| Analytics & dashboard | ❌ | ✅ | ✅ |
-| Read all users' records | ❌ | ❌ | ✅ |
-| User management | ❌ | ❌ | ✅ |
+**Generate secure JWT secrets:**
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
 
 ---
 
-## API Endpoints
+## 📡 API Reference
 
 ### Auth — `/api/v1/auth`
-
-| Method | Path | Description | Auth |
+| Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| POST | `/register` | Register new user | Public |
-| POST | `/login` | Login, receive tokens | Public |
-| POST | `/refresh` | Refresh access token | Public |
-| GET | `/me` | Get current user | Any |
-| PUT | `/change-password` | Change password | Any |
-
-### Users — `/api/v1/users` (Admin only)
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/` | List users (paginated, filterable) |
-| GET | `/:id` | Get user by ID |
-| PUT | `/:id` | Update user details |
-| DELETE | `/:id` | Delete user |
-| PATCH | `/:id/role` | Assign role |
-| PATCH | `/:id/status` | Activate / deactivate |
+| `POST` | `/register` | Register new user | Public |
+| `POST` | `/login` | Login → JWT tokens | Public |
+| `POST` | `/refresh` | Refresh access token | Public |
+| `GET` | `/me` | Current user profile | Any |
+| `PUT` | `/change-password` | Update password | Any |
 
 ### Records — `/api/v1/records`
-
-| Method | Path | Description | Min Role |
+| Method | Endpoint | Description | Min Role |
 |---|---|---|---|
-| GET | `/` | List records (paginated, filterable) | Viewer |
-| POST | `/` | Create record | Analyst |
-| GET | `/:id` | Get record by ID | Viewer |
-| PUT | `/:id` | Update record | Analyst |
-| DELETE | `/:id` | Soft delete record | Analyst |
+| `GET` | `/` | List records (paginated + filtered) | Viewer |
+| `POST` | `/` | Create record | Analyst |
+| `GET` | `/:id` | Get by ID | Viewer |
+| `PUT` | `/:id` | Update record | Analyst |
+| `DELETE` | `/:id` | Soft delete | Analyst |
 
-**Query Parameters for GET /records:**
-- `page`, `limit` — pagination
-- `type` — `income` or `expense`
-- `category` — partial match
-- `startDate`, `endDate` — ISO date range
-- `search` — search in notes
-- `sortBy` — `date` | `amount` | `createdAt`
-- `sortOrder` — `asc` | `desc`
+**Query params:** `page`, `limit`, `type`, `category`, `startDate`, `endDate`, `search`, `sortBy`, `sortOrder`
 
-### Analytics — `/api/v1/analytics` (Analyst + Admin)
-
-| Method | Path | Description |
+### Analytics — `/api/v1/analytics`
+| Method | Endpoint | Description |
 |---|---|---|
-| GET | `/summary` | Total income, expenses, net balance |
-| GET | `/categories` | Breakdown by category |
-| GET | `/trends` | Monthly income vs expense trends |
-| GET | `/recent` | Most recent transactions |
-| GET | `/top-categories` | Top N categories by total |
+| `GET` | `/summary` | Total income, expenses, net balance |
+| `GET` | `/categories` | Spending grouped by category |
+| `GET` | `/trends` | Monthly income vs expense (all 12 months) |
+| `GET` | `/recent` | Most recent transactions |
+| `GET` | `/top-categories` | Top N categories by amount |
+
+### Users — `/api/v1/users` *(Admin only)*
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/` | List users (paginated) |
+| `GET` | `/:id` | Get user by ID |
+| `PUT` | `/:id` | Update user |
+| `DELETE` | `/:id` | Delete user |
+| `PATCH` | `/:id/role` | Assign role |
+| `PATCH` | `/:id/status` | Activate / deactivate |
 
 ---
 
-## Example Requests
+## 🧪 Test Credentials
 
-### Register
+After running `npm run seed`:
 
-```http
-POST /api/v1/auth/register
-Content-Type: application/json
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@example.com` | `Admin123!` |
+| Analyst | `analyst@example.com` | `Analyst123!` |
+| Viewer | `viewer@example.com` | `Viewer123!` |
 
-{
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "password": "Secret123",
-  "role": "analyst"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Registration successful",
-  "data": {
-    "user": {
-      "_id": "64f1a2b3c4d5e6f7a8b9c0d1",
-      "name": "Jane Doe",
-      "email": "jane@example.com",
-      "role": "analyst",
-      "status": "active"
-    },
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
-
-### Login
-
-```http
-POST /api/v1/auth/login
-Content-Type: application/json
-
-{
-  "email": "jane@example.com",
-  "password": "Secret123"
-}
-```
-
-### Create a Financial Record
-
-```http
-POST /api/v1/records
-Authorization: Bearer <accessToken>
-Content-Type: application/json
-
-{
-  "amount": 4500.00,
-  "type": "income",
-  "category": "Salary",
-  "date": "2024-01-15",
-  "notes": "January salary payment"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Record created successfully",
-  "data": {
-    "record": {
-      "_id": "64f1a2b3c4d5e6f7a8b9c0d2",
-      "amount": 4500,
-      "type": "income",
-      "category": "Salary",
-      "date": "2024-01-15T00:00:00.000Z",
-      "notes": "January salary payment",
-      "createdBy": {
-        "_id": "64f1a2b3c4d5e6f7a8b9c0d1",
-        "name": "Jane Doe",
-        "email": "jane@example.com"
-      },
-      "createdAt": "2024-01-15T10:30:00.000Z"
-    }
-  }
-}
-```
-
-### Get Records with Filters
-
-```http
-GET /api/v1/records?type=expense&startDate=2024-01-01&endDate=2024-01-31&page=1&limit=10
-Authorization: Bearer <accessToken>
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Records retrieved successfully",
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total": 34,
-    "pages": 4,
-    "hasNext": true,
-    "hasPrev": false
-  }
-}
-```
-
-### Dashboard Summary
-
-```http
-GET /api/v1/analytics/summary?startDate=2024-01-01&endDate=2024-12-31
-Authorization: Bearer <accessToken>
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Success",
-  "data": {
-    "summary": {
-      "totalIncome": 54000.00,
-      "totalExpenses": 38250.75,
-      "netBalance": 15749.25,
-      "totalRecords": 98,
-      "incomeCount": 24,
-      "expenseCount": 74
-    }
-  }
-}
-```
-
-### Monthly Trends
-
-```http
-GET /api/v1/analytics/trends?year=2024
-Authorization: Bearer <accessToken>
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "trends": {
-      "year": 2024,
-      "months": [
-        { "month": 1, "monthName": "Jan", "income": 4500, "expenses": 3200, "net": 1300 },
-        { "month": 2, "monthName": "Feb", "income": 4500, "expenses": 2900, "net": 1600 },
-        ...
-      ]
-    }
-  }
-}
-```
-
-### Assign Role (Admin)
-
-```http
-PATCH /api/v1/users/64f1a2b3c4d5e6f7a8b9c0d1/role
-Authorization: Bearer <adminToken>
-Content-Type: application/json
-
-{
-  "role": "analyst"
-}
-```
+> **Try it live:** [API Docs →](https://your-app.up.railway.app/api-docs)
+> 1. Hit `POST /auth/login` with admin credentials
+> 2. Copy the `accessToken`
+> 3. Click **Authorize** and paste it in
+> 4. Explore all endpoints
 
 ---
 
-## Error Response Format
+## 🛡️ Security Features
 
-All errors return a consistent structure:
+- **Helmet** — sets secure HTTP headers
+- **CORS** — configurable allowed origins
+- **mongo-sanitize** — prevents NoSQL injection
+- **Rate limiting** — 20 req/15min on auth, 100 req/15min on API
+- **Bcrypt** — password hashing with salt rounds
+- **JWT expiry** — short-lived access tokens (7d) + refresh tokens (30d)
+
+---
+
+## 📊 Error Responses
+
+All errors follow a consistent structure:
 
 ```json
 {
@@ -376,34 +172,48 @@ All errors return a consistent structure:
     "code": "VALIDATION_ERROR",
     "message": "Validation failed",
     "errors": [
-      { "field": "amount", "message": "amount must be a positive number" }
+      { "field": "amount", "message": "must be a positive number" }
     ]
   }
 }
 ```
 
-**Error Codes:**
-
 | Code | HTTP | Meaning |
 |---|---|---|
-| `VALIDATION_ERROR` | 422 | Input validation failed |
+| `VALIDATION_ERROR` | 422 | Invalid input |
 | `AUTHENTICATION_ERROR` | 401 | Missing or invalid token |
-| `AUTHORIZATION_ERROR` | 403 | Insufficient role permissions |
+| `AUTHORIZATION_ERROR` | 403 | Insufficient permissions |
 | `NOT_FOUND` | 404 | Resource not found |
-| `CONFLICT` | 409 | Duplicate resource (e.g. email) |
+| `CONFLICT` | 409 | Duplicate (e.g. email) |
 | `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
-| `INTERNAL_SERVER_ERROR` | 500 | Unexpected server error |
+| `INTERNAL_SERVER_ERROR` | 500 | Unexpected error |
 
 ---
 
-## Design Decisions
+## 🧰 Stack
 
-**Soft Delete** — Records are never permanently removed. An `isDeleted` flag is set, and a Mongoose `pre(/^find/)` hook automatically filters them from all queries. Pass `{ includeDeleted: true }` in query options to bypass.
+| Layer | Technology |
+|---|---|
+| Runtime | Node.js 18+ (ESM) |
+| Framework | Express 4 |
+| Database | MongoDB via Mongoose 8 |
+| Auth | JWT (access + refresh tokens) |
+| Validation | Joi |
+| Logging | Winston + Morgan + daily rotation |
+| Rate Limiting | express-rate-limit |
+| Docs | Swagger / OpenAPI 3.0 |
+| Security | Helmet, CORS, mongo-sanitize |
 
-**Token Invalidation** — Tokens issued before a password change are rejected by comparing `iat` (issued-at) against `passwordChangedAt`.
+---
 
-**Ownership Enforcement** — Non-admin users can only read, update, and delete their own records. Admins have unrestricted access to all records.
+<div align="center">
 
-**Aggregation Normalization** — Monthly trends always return all 12 months (with zeros for months without data) to simplify frontend charting.
+Built with Node.js · Deployed on Railway · Documented with Swagger
 
-**Error Taxonomy** — Typed error classes (`AppError`, `ValidationError`, `AuthenticationError`, etc.) allow precise HTTP status codes and error codes without any `if-else` chains in route handlers.
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=14&duration=3000&pause=1000&color=6CDDFF&center=true&vCenter=true&width=600&lines=Built+with+Node.js+%7C+Deployed+on+Railway+%7C+Documented+with+Swagger" alt="footer text" />
+
+![footer](https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=100&section=footer)
+
+</div>
