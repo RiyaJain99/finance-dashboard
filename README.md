@@ -9,13 +9,13 @@
 [![Swagger](https://img.shields.io/badge/Swagger-Docs-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io)
 [![Render](https://img.shields.io/badge/Live%20API-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://finance-dashboard-hho6.onrender.com/api-docs)
 
+### 🌐 [Live API Docs →](https://finance-dashboard-hho6.onrender.com/api-docs) &nbsp;|&nbsp; [Health Check →](https://finance-dashboard-hho6.onrender.com/health)
+
 </div>
 
 ---
 
 ## ✨ What's Inside
-
-> A fully featured, production-ready backend for a finance dashboard — with role-based access control, JWT authentication, financial record management, and aggregated analytics. Built to be clean, secure, and scalable.
 
 > A fully featured, production-ready backend for a finance dashboard — with role-based access control, JWT authentication, financial record management, and aggregated analytics. Built to be clean, secure, and scalable.
 
@@ -67,7 +67,7 @@ src/
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/YOUR_USERNAME/finance-dashboard.git
+git clone https://github.com/RiyaJain99/finance-dashboard.git
 cd finance-dashboard
 npm install
 
@@ -143,7 +143,7 @@ After running `npm run seed`:
 | Analyst | `analyst@example.com` | `Analyst123!` |
 | Viewer | `viewer@example.com` | `Viewer123!` |
 
-> **Try it live:** [API Docs →](https://your-app.up.railway.app/api-docs)
+> **Try it live:** [API Docs →](https://finance-dashboard-hho6.onrender.com/api-docs)
 > 1. Hit `POST /auth/login` with admin credentials
 > 2. Copy the `accessToken`
 > 3. Click **Authorize** and paste it in
